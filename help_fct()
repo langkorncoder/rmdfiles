@@ -1,0 +1,76 @@
+# Add a description for des_shapiro
+help_fct <- function(fct) {
+  # Überprüfen Sie, ob fct eine gültige Funktion ist
+  if (!is.function(fct)) {
+    stop("fct must be a valid function, see help_fct('help_fct')")
+  }
+
+if(fct == "cc_lmer") {print(
+   " cc_lmer = cc_lmer(target, effects, data, test = 'Chisq') creates and compares linear mixed models using lme4::lmer. target is the response variable, effects is a list of effects to include in the models, data is the data frame, and test is the type of test to use for the anova. The function returns a list of anova_table, model_list, and summary_list.")}
+
+if(fct == "cc_glmer"){
+    print("cc_glmer = cc_glmer(target, effects, data, test = 'Chisq') creates and compares generalized linear mixed models using lme4::glmer. target is the response variable, effects is a list of effects to include in the models, data is the data frame, and test is the type of test to use for the anova. The function returns a list of anova_table, model_list, and summary_list.")
+}
+
+if(fct == "cc_lm"){
+    print("cc_lm = cc_lm(target, effects, data, test = 'Chisq') creates and compares linear models using lm. target is the response variable, effects is a list of effects to include in the models, data is the data frame, and test is the type of test to use for the anova. The function returns a list of anova_table, model_list, and summary_list.")
+}
+
+if(fct == "cc_glmer"){
+    print("des_boxplots = des_boxplots(data, x_var = 'origin', color_var = 'kultivar', title_prefix = 'Boxplot of THC-Content by Cultivar and Origin', theme_options = list(), save_plots = FALSE) creates boxplots for all columns in a given data frame using ggboxplot. data is the data frame, x_var is the x-axis variable, color_var is the color variable, title_prefix is the prefix for the plot titles, theme_options is a list of theme elements to customize the plots, and save_plots is a logical value indicating whether to save the plots or not. The function returns a list of boxplots.")}
+
+if (fct == "des_shapiro"){
+print("des_shapiro = des_shapiro(data, to_csv = FALSE, file_name = 'output.csv') performs Shapiro-Wilk test on all numerical variables in a given data frame. data is the data frame, to_csv is a logical value indicating whether to save the results or not, and file_name is the name of the output file. The function returns a data frame of the test results.")
+    }
+
+if(fct == "load_packages"){ print(
+    "load_packages = load_packages(packages = c(“dplyr”, “tidyverse”, “ggplot2”, “janitor”, “skimr”, “ggpubr”, “performance”, “knitr”, “xfun”, “rmarkdown”, “reshape2”, “lme4”, “stringr”, “lubridate”)) is a function that takes a vector of package names, with a default value, and uses the p_load function from the pacman package to install and load them. This is a convenient way to ensure that all the required packages are available for the analysis.")
+}
+   if(fct == "overview"){
+print("
+  overview(data) is a function that provides an overview of a given data frame. It uses the structured, glimpse, and skim functions from the structured, tidyverse2, and skimr packages, respectively, to display the structure, summary, and statistics of the data. It returns a list of the results from these functions.")
+}
+
+if(fct == "tra_switch") {
+print(
+  "'tra_switch' = tra_switch(data, type = NULL, variable.name = time, value.var = 'value', melts_long = 'x\\d+', set_numeric = TRUE, ids= NULL, type_extra = FALSE) is a function that transforms data from long to short format or vice versa. It takes the following arguments data: the data frame to be transformed type: the type of transformation, either 'long' or 'short' variable.name: the name of the variable for time, default is 'time' value.var: the name of the value variable, default is 'value' melts_long: the pattern to identify time columns, default is 'x\\d+' set_numeric: a logical value indicating whether to set numeric time, default is TRUE  ids: the ids to use for melting or casting, default is NULL  type_extra: a logical value indicating whether to use extra type if no pattern is given, default is FALSE; The function checks if the type argument is specified, and if the data has time points as separate columns. Depending on the type argument, it uses the reshape2 package to melt or cast the data, using the variable.name, value.var, melts_long, ids, and type_extra arguments. It also converts the time variable to numeric if set_numeric is TRUE. It returns the transformed data."
+  )}
+
+if(fct == "create_custom_histograms") {print(" # Add a description for create_custom_histograms using roxygen2 syntax
+#' Create custom histograms based on user inputs
+#'
+#' This function creates custom histograms for all numerical variables in a given data frame, using the ggplot2 package. 
+#' It takes the following arguments:
+#'
+#' @param data The data frame to be analyzed
+#' @param method_col The name of the column that contains the method names
+#' @param bins The number of bins for the histograms, default is 30
+#' @param color The color for the histograms, default is blue
+#' @param alpha The transparency for the histograms, default is 0.5
+#' @param to_csv A logical value indicating whether to save the histograms as .csv files, default is FALSE
+#' @param file_name The name of the output file, default is histograms.csv
+#' @return A list of the data, the overview, and the histograms
+#' @examples
+#' customs <- create_custom_histograms(distinct_bayern_eins, "methode", messwerte, bins = 20, color = red, to_csv = TRUE)
+#' print(customs$histograms)")
+
+if (fct == "calculate_change_rates") {
+  print("
+    # Add a description for calculate_change_rates using roxygen2 syntax
+    #' Calculate the change rates between consecutive columns
+    #'
+    #' This function calculates the change rates between consecutive columns specified by the columns argument. 
+    #' It creates new columns with the names change_rate_x0_x3, change_rate_x3_x6, and so on, and adds them to the data frame. 
+    #' It removes the rows with missing values by default, unless specified otherwise.
+    #'
+    #' @param data The data frame to be analyzed
+    #' @param columns The character vector that specifies the names of the columns to use for the calculation
+    #' @param na.omit The logical value that indicates whether to remove the rows with missing values or not, default is TRUE
+    #' @return A modified data frame with the new columns added
+    #' @examples
+    #' file_filtered <- calculate_change_rates(file, c(x0,x1,x2 etc.")
+  )
+}
+
+}
+}

@@ -1,0 +1,21 @@
+create_compare_lm <- function(target, effects, data, test = "Chisq") {
+  # Überprüfen Sie, ob die Effekte eine Liste sind
+  if (!is.list(effects)) {
+    stop("effects must be a list of effects")
+  }
+  # Erstellen Sie eine leere Liste, um die Modelle zu speichern
+  model_list <- list()
+  # Schleife über die Effekte in der Liste
+  for (i in seq_along(effects)) {
+    # Erstellen Sie eine Formel mit der Zielvariable und dem Effekt aus der Liste
+    formula <- as.formula(paste(target, "~", effects[[i]]))
+    # Erstellen Sie ein lineares Modell mit der Formel und den Daten
+    model <- lm(formula = formula, data = data)
+    # Fügen Sie das Modell der Liste hinzu
+    model_list[[i]] <- model
+  }
+  # Vergleichen Sie die Modelle mit der ANOVA-Funktion
+  anova_table <- anova(model_list[[1]], model_list[[2]], ..., model_list[[length(effects)]], test = test)
+  # Geben Sie die ANOVA-Tabelle zurück
+  return(anova_table)
+}

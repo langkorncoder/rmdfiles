@@ -1,0 +1,37 @@
+# Define a function that takes a data frame and a vector of column names as arguments
+# The function calculates the change rates between consecutive columns
+# The function removes the rows with missing values by default, unless specified otherwise
+# The function returns a modified data frame with the new columns added
+calculate_change_rates <- function(data, columns, na.omit = TRUE) {
+  # Check if the arguments are valid
+  if (!is.data.frame(data)) {
+    stop("data must be a data frame")
+  }
+  if (!is.character(columns) || length(columns) < 2) {
+    stop("columns must be a character vector of length at least 2")
+  }
+  if (!is.logical(na.omit)) {
+    stop("na.omit must be a logical value")
+  }
+  # Create a copy of the data frame to avoid modifying the original one
+  data_copy <- data
+  # Remove the rows with missing values if na.omit is TRUE
+  if (na.omit) {
+    data_copy <- tidyr::na.omit(data_copy)
+  }
+  # Loop through the column names and calculate the change rates
+  for (i in 1:(length(columns) - 1)) {
+    # Create a new column name based on the current and next column names
+    new_column <- paste0("change_rate_", columns[i], "_", columns[i + 1])
+    # Calculate the change rate between the current and next columns
+    data_copy[[new_column]] <- (data_copy[[columns[i + 1]]] - data_copy[[columns[i]]]) / data_copy[[columns[i]]]
+  }
+  # Return the modified data frame
+  return(data_copy)
+}
+
+# Example usage
+# Assume file is a data frame with columns x0, x3, x6, x9, x12, and x15
+# Assume columns is c("x0", "x3", "x6", "x9", "x12", "x15")
+# Assume na.omit is TRUE by default
+#file_filtered <- #calculate_change_rates(file, columns)

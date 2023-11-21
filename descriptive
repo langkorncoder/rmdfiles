@@ -1,0 +1,208 @@
+# Define a function to create boxplots for all columns in a given data frame
+# Add parameters to allow the user to specify the data frame, the x-axis variable, the color variable, the theme options, and the option to save the plots
+des_boxplots <- function(data, x_var = "origin", color_var = "kultivar", title_prefix = "Boxplot", theme_options = list(), save_plots = FALSE) {
+  # Create an empty list to store the boxplots
+  boxplots <- list()
+
+  # Loop over the names of the columns
+  for (k in names(data)) {
+    # Check if the k-th column is numeric
+    if (is.numeric(data[[k]])) {
+      # Create a boxplot for the k-th column
+      bxp <- ggboxplot(
+        data, x = x_var, y = k,
+        color = color_var,
+        title = paste(title_prefix, k),
+        bxp.errorbar = TRUE
+      )
+
+      # Customize the theme
+      bxp <- bxp + theme(
+        plot.title = element_text(hjust = 0.5),
+        panel.background = element_rect(fill = "#FFFFFF"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 2),
+        legend.text = element_text(size = 6)  # Set the legend text size to 8
+      ) + scale_y_continuous(minor_breaks = waiver())
+
+      # Apply the user-specified theme options
+      for (option in names(theme_options)) {
+        bxp <- bxp + theme_options[[option]]
+      }
+
+      # Save the boxplot in the list
+      boxplots[[k]] <- bxp
+    }
+  }
+
+  # If the user chooses to save the plots, save them as .jpg files
+  if (save_plots) {
+    # Create a folder to store the plots
+    dir.create("boxplots")
+    for (k in names(data)) {
+      # Check if the k-th column is numeric
+      if (is.numeric(data[[k]])) {
+        # Create a file name for the boxplot
+        filename <- paste("boxplots/boxplot_spalte", k, ".jpg", sep = "")
+
+        # Save the boxplot as a .jpg file
+        ggsave(filename, boxplots[[k]])
+      }
+    }
+  }
+
+  # Return the list of boxplots
+  return(boxplots)
+}
+
+
+# Define a function to perform Shapiro-Wilk test on all numerical variables in a given data frame
+# Add a parameter to_csv to allow the user to choose whether to save the results or not
+# Add a parameter file_name to allow the user to specify the name of the output file
+# Set the default value of file_name to "output.csv"
+des_shapiro <- function(data, to_csv = FALSE, file_name = "output.csv") {
+  numeric_columns <- sapply(data, is.numeric)
+  column_numbers <- which(numeric_columns)
+  
+  # Apply lapply to perform Shapiro-Wilk test only on variables with more than one unique value and a standard deviation > 0
+  shapiro_results <- lapply(data[, column_numbers], function(x) {
+    x <- na.omit(x)
+    if (length(unique(x)) > 1 && sd(x) != 0) shapiro.test(x)
+  })
+  
+  # Remove NULL results (these come from variables with identical values or a standard deviation of zero, e.g. med_esketamin_mg)
+  shapiro_results <- shapiro_results[!sapply(shapiro_results, is.null)]
+  
+  shapiro_results_df <- data.frame(data = character(), W = numeric(), p_value = numeric(), stringsAsFactors = FALSE)
+  
+  # Loop over the names of the columns
+  for (column_number in column_numbers) {
+    # Check if the result is not NULL
+    if (!is.null(shapiro_results[[column_number]])) {
+      result <- shapiro_results[[column_number]]
+      shapiro_results_df <- rbind(shapiro_results_df, data.frame(data = names(data)[column_number], W = result$statistic, p_value = result$p.value))
+    }
+  }
+  
+  # If the user chooses to save the results, write them to a CSV file with the given file name
+  if (to_csv) {
+    write.csv(shapiro_results_df, file_name, row.names = FALSE)
+  }
+  
+  return(shapiro_results_df)
+}
+
+overview <- function(data) {
+  structured <- structured(data)
+  glimpsed <- tidyverse2::glimpse(data)
+  skimsed <- skimr::skim(data)
+  df <- return(list(structured = structured, glimpsed = glimpsed, skimsed = skimsed))
+}
+
+structured <- function(newdf = NULL, to_csv = FALSE, output_file = "structured.csv") {
+	if(is.null(newdf)) { 
+		stop("Hello :) 
+
+This function provides how the dataframe of your interest is structured. Names of column, their position, class, nrows, unique values and examples. Also gives possibility to export dataframe as .csv file. 
+
+Arguments: 
+input = ... (name of your dataframe)
+to_csv = FALSE by default; if set to TRUE writes .csv file into given pathway
+output_file = 'structured.csv' by default; necessary only if to_csv = TRUE 
+
+ask me :) godbersengodber@gmail.com")}
+	if(!is.null(newdf)) {
+  vars <- colnames(newdf)
+  position <- seq_along(vars)
+  class <- sapply(newdf, class)
+  nrows <- nrow(newdf)
+  n_unique <- sapply(newdf, function(x) length(unique(x)))
+  n_observations <- sapply(newdf, function(x) sum(!is.na(x)))
+  rate <- n_observations/nrows
+  example <- sapply(newdf, function(x) paste0(x[1], ", ", x[5]))
+  df_structured <- data.frame(variable = vars, position = position, class = class, nrows = nrows, n_unique = n_unique, n_obs = n_observations, rate = rate, example_rows = example)
+  if(to_csv == TRUE) { 
+	  write.csv(df_structured, file = output_file)
+	  }
+  return(df_structured)
+}}
+ 
+
+# Define a function that creates custom histograms based on user inputs
+create_custom_histograms <- function(data, method_col, bins = 30, color = "blue", alpha = 0.5, to_jpg = FALSE, file_name = "histograms.csv") {
+  
+  # Create a new column named "method_id" containing a number for each unique 'methode' name
+  data$method_id <- as.integer(factor(data[[method_col]], levels = unique(data[[method_col]])))
+  
+  # Create an empty list to store the histograms
+  histograms <- list()
+  
+  # Loop over the names of the numeric columns
+  for (k in names(data)) {
+    # Check if the k-th column is numeric
+    if (is.numeric(data[[k]])) {
+      # Create a histogram for the k-th column
+      hist <- ggplot(data, aes(x = .data[[k]])) +
+        geom_histogram(bins = bins, color = color, fill = color, alpha = alpha) +
+        facet_wrap(~ method_id, scales = "free") + theme_minimal() +
+        labs(title = paste("Histogram of", k))
+      
+      # Save the histogram in the list
+      histograms[[k]] <- hist
+    }
+  }
+  
+  # If the user chooses to save the histograms, save them as .csv files in a folder
+  if (to_jpg == TRUE) {
+    # Create a folder to store the histograms
+    dir.create("histograms")
+    for (k in names(data)) {
+      # Check if the k-th column is numeric
+      if (is.numeric(data[[k]])) {
+        # Create a file name for the histogram
+        filename <- paste("histograms/histogram_", k, ".jpg", sep = "")
+        
+        # Save the histogram as a .csv file
+        ggsave(filename, histograms[[k]])
+      }
+    }
+  }
+  
+  # Return a list of the data, the overview, and the histograms
+  return(list(data = data, overview = overview, histograms = histograms))
+}
+
+# Define a function that creates custom density plots based on user inputs
+create_custom_density_plots <- function(data, method_col, color = "blue", alpha = 0.5, to_jpg = FALSE, file_name = "density_plots.csv") {
+
+#Create a new column named “method_id” containing a number for each unique ‘methode’ #name
+data$method_id <- as.integer(factor(data[[method_col]], levels = unique(data[[method_col]])))
+
+# Create an empty list to store the density plots
+density_plots <- list()
+
+#Loop over the names of the numeric columns
+for (k in names(data)) { # Check if the k-th column is numeric if (is.numeric(data[[k]])) { # Create a density plot for the k-th column 
+
+dens <- ggplot(data, aes(x = .data[[k]], fill = factor(method_id))) + geom_density(color = color, alpha = alpha) + facet_wrap(~ method_id, scales = "free") + theme_minimal() + labs(title = paste("Density plot of", k))
+
+  # Save the density plot in the list
+  density_plots[[k]] <- dens
+}
+
+
+
+#If the user chooses to save the density plots, save them as .csv files in a folder
+if (to_jpg==TRUE) { # Create a folder to store the density plots dir.create("density_plots") for (k in names(data)) { # Check if the k-th column is #numeric 
+if (is.numeric(data[[k]])) { # Create a file name for the density plot 
+filename <- paste("density_plots/density_plot_", k, ".jpg", sep = "")
+
+    # Save the density plot as a .csv file
+    ggsave(filename, density_plots[[k]])
+  }
+}
+
+
+#Return a list of the data, the overview, and the density plots
+return(list(data = data, overview = overview, density_plots = density_plots)) 
+
+}

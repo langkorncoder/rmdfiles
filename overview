@@ -1,0 +1,6 @@
+overview <- function(data) {
+  structured <- structured(data)
+  glimpsed <- tidyverse2::glimpse(data)
+  skimsed <- skimr::skim(data)
+  df <- return(list(structured = structured, glimpsed = glimpsed, skimsed = skimsed))
+}

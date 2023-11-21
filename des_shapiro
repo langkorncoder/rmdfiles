@@ -1,0 +1,35 @@
+# Define a function to perform Shapiro-Wilk test on all numerical variables in a given data frame
+# Add a parameter to_csv to allow the user to choose whether to save the results or not
+# Add a parameter file_name to allow the user to specify the name of the output file
+# Set the default value of file_name to "output.csv"
+des_shapiro <- function(data, to_csv = FALSE, file_name = "output.csv") {
+  numeric_columns <- sapply(data, is.numeric)
+  column_numbers <- which(numeric_columns)
+  
+  # Apply lapply to perform Shapiro-Wilk test only on variables with more than one unique value and a standard deviation > 0
+  shapiro_results <- lapply(data[, column_numbers], function(x) {
+    x <- na.omit(x)
+    if (length(unique(x)) > 1 && sd(x) != 0) shapiro.test(x)
+  })
+  
+  # Remove NULL results (these come from variables with identical values or a standard deviation of zero, e.g. med_esketamin_mg)
+  shapiro_results <- shapiro_results[!sapply(shapiro_results, is.null)]
+  
+  shapiro_results_df <- data.frame(data = character(), W = numeric(), p_value = numeric(), stringsAsFactors = FALSE)
+  
+  # Loop over the names of the columns
+  for (column_number in column_numbers) {
+    # Check if the result is not NULL
+    if (!is.null(shapiro_results[[column_number]])) {
+      result <- shapiro_results[[column_number]]
+      shapiro_results_df <- rbind(shapiro_results_df, data.frame(data = names(data)[column_number], W = result$statistic, p_value = result$p.value))
+    }
+  }
+  
+  # If the user chooses to save the results, write them to a CSV file with the given file name
+  if (to_csv) {
+    write.csv(shapiro_results_df, file_name, row.names = FALSE)
+  }
+  
+  return(shapiro_results_df)
+}

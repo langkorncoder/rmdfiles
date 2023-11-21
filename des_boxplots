@@ -1,0 +1,49 @@
+# Define a function to create boxplots for all columns in a given data frame
+# Add parameters to allow the user to specify the data frame, the x-axis variable, the color variable, the theme options, and the option to save the plots
+des_boxplots <- function(data, x_var = "origin", color_var = "kultivar", title_prefix = "Boxplot of THC-Content by Cultivar and Origin", theme_options = list(), save_plots = FALSE) {
+  # Create an empty list to store the boxplots
+  boxplots <- list()
+  
+  # Loop over the names of the columns
+  for (k in names(data)) {
+    # Create a boxplot for the k-th column
+    bxp <- ggboxplot(
+      data, x = x_var, y = k,
+      color = color_var,
+      title = paste(title_prefix, k),
+      bxp.errorbar = TRUE
+    )
+    
+    # Customize the theme
+    bxp <- bxp + theme(
+      plot.title = element_text(hjust = 0.5),
+      panel.background = element_rect(fill = "#FFFFFF"),
+      panel.border = element_rect(colour = "black", fill = NA, size = 2),
+      legend.text = element_text(size = 6)  # Set the legend text size to 8
+    ) + scale_y_continuous(minor_breaks = waiver())
+    
+    # Apply the user-specified theme options
+    for (option in names(theme_options)) {
+      bxp <- bxp + theme_options[[option]]
+    }
+    
+    # Save the boxplot in the list
+    boxplots[[k]] <- bxp
+  }
+  
+  # If the user chooses to save the plots, save them as .jpg files
+  if (save_plots) {
+    # Create a folder to store the plots
+    dir.create("boxplots")
+    for (k in names(data)) {
+      # Create a file name for the boxplot
+      filename <- paste("boxplots/boxplot_spalte", k, ".jpg", sep = "")
+      
+      # Save the boxplot as a .jpg file
+      ggsave(filename, boxplots[[k]])
+    }
+  }
+  
+  # Return the list of boxplots
+  return(boxplots)
+}

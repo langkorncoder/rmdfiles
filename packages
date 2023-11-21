@@ -1,0 +1,32 @@
+# install and load pacman
+if (!requireNamespace("pacman", quietly = TRUE))
+  install.packages("pacman")
+library(pacman)
+
+# Function to install and load packages using pacman
+# Takes a vector of package names, with a default value
+# Returns a message indicating that the packages have been loaded
+load_packages <- function(packages = c("dplyr", "tidyverse", "ggplot2", "janitor", "skimr", "ggpubr", "performance", "knitr", "xfun", "rmarkdown", "reshape2", "lme4", "stringr", "lubridate")) {
+  if (!is.vector(packages) || !is.character(packages)) {
+    stop("packages must be a vector of character strings, see help_fct('load_packages')")
+  }
+  if (length(packages) == 0) {
+    stop("packages must not be empty, see help_fct('load_packages')")
+  }
+
+  # Initialize an empty vector to store the loaded packages
+  loaded_packages <- c()
+
+  for (k in packages) {
+    # use p_load to install and load the packages
+    pacman::p_load(k, character.only = TRUE)
+    # Append the package name to the loaded_packages vector
+    loaded_packages <- c(loaded_packages, k)
+  }
+
+  # Return a message indicating that the packages have been loaded
+  return(paste("The following packages have been loaded:", paste(loaded_packages, collapse = ", ")))
+}
+
+load_packages()
+

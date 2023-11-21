@@ -1,0 +1,308 @@
+---
+title: An R Markdown document converted from "/Users/gogo/Downloads/workspace 2/Valerieneu.ipynb"
+output: html_document
+---
+
+## Experimental Design
+
+The experimental design for each data set consists of 36 animals allocated to 6 different cages. The animals have two different genotypes (wildtype WT and knockout KO) and were allocated to 3 different treatments (control group 0, treatment A, and treatment B). The metric outcome is stored in the variable y.
+
+The factors in the design are as follows:
+
+- Genotype (WT, KO)
+- Treatment (0, A, B)
+- Cage (1, 2, 3, 4, 5, 6)
+
+The factors Genotype and Treatment are crossed, meaning that each combination of Genotype and Treatment is represented in the data set. The factor Cage is nested within the combination of Genotype and Treatment, as each combination of Genotype and Treatment is represented in each of the 6 cages.
+
+## Randomization Strategies
+
+For the different designs, good randomization strategies would include:
+
+- Randomly assigning animals to cages
+- Randomly assigning animals to treatments within each genotype
+
+These randomization strategies help ensure that any observed effects are not biased by the initial assignment of animals to cages or treatments.
+
+## Limitations of the Designs
+
+The limitations of each design include:
+
+- The small sample size of 36 animals
+- The potential for confounding factors not accounted for in the design
+- The potential for variability within cages
+
+Some designs may have limitations in answering the main research question due to factors such as:
+
+- Lack of statistical power
+- Inadequate control of confounding factors
+- Inability to detect interactions
+
+If any of these limitations are present, it is important to acknowledge them and interpret the results with caution.
+
+```{r}
+install.packages("pacman")
+library(pacman)
+
+p_load(dplyr, tidyverse, ggplot2, janitor, skimr, ggpubr, performance, knitr, xfun, rmarkdown, reshape2, lme4, stringr, lubridate, tidyverse)
+```
+
+```{r}
+source("Packages/read_clean")
+source("Packages/descriptive")
+source("Packages/create_compare_models")
+```
+
+## Computation of Mean and Confidence Intervals
+
+To compute the mean and corresponding confidence intervals for the animals of each combination of treatment and genotype, we can use the following steps:
+
+1. Group the data by treatment and genotype.
+2. Calculate the mean and confidence intervals for each group.
+3. Visualize the data with respect to the main research question.
+
+## Additional Plots
+
+To fully describe the data sets and highlight the potential associations between the three factors (genotype, treatment, and cage), we can create additional plots using facets, different symbols, and colors. These plots can provide insights into the relationships between the factors and help identify any patterns or trends.
+
+```{r, results="hide"}
+valerie_1 <- read_and_clean_data("valerie_1.csv", seperate = ",", decim = ".")
+valerie_2 <- read_and_clean_data("valerie_2.csv", seperate = ",", decim = ".")
+valerie_3 <- read_and_clean_data("valerie_3.csv", seperate = ",", decim = ".")
+```
+
+```{r}
+# Grouping valerie_1 by treatment and genotype
+valerie_1_grouped <- valerie_1 %>%
+  group_by(treatment, genotype)
+
+# Glimpse of valerie_1_grouped
+glimpse(valerie_1_grouped)
+
+# Skim of valerie_1_grouped
+skim(valerie_1_grouped)
+
+# Calculate confidence interval for each group in valerie_1_grouped
+valerie_1_grouped <- valerie_1_grouped %>%
+  mutate(confidence_interval = qt((1-0.05)/2 + 0.5, n()-1) * sd(y) / sqrt(n()))
+
+# Grouping valerie_2 by treatment and genotype
+valerie_2_grouped <- valerie_2 %>%
+  group_by(treatment, genotype)
+
+# Glimpse of valerie_2_grouped
+glimpse(valerie_2_grouped)
+
+# Skim of valerie_2_grouped
+skim(valerie_2_grouped)
+
+# Calculate confidence interval for each group in valerie_2_grouped
+valerie_2_grouped <- valerie_2_grouped %>%
+  mutate(confidence_interval = qt((1-0.05)/2 + 0.5, n()-1) * sd(y) / sqrt(n()))
+
+# Grouping valerie_3 by treatment and genotype
+valerie_3_grouped <- valerie_3 %>%
+  group_by(treatment, genotype)
+
+# Glimpse of valerie_3_grouped
+glimpse(valerie_3_grouped)
+
+# Skim of valerie_3_grouped
+skim(valerie_3_grouped)
+
+# Calculate confidence interval for each group in valerie_3_grouped
+valerie_3_grouped <- valerie_3_grouped %>%
+  mutate(confidence_interval = qt((1-0.05)/2 + 0.5, n()-1) * sd(y) / sqrt(n()))
+```
+
+```{r}
+glimpse(valerie_1)
+skimr::skim(valerie_2)
+```
+
+```{r}
+bxplots_valerie_1 <- des_boxplots(valerie_1, x_var = "genotype", color = "treatment", theme_options= c(facet_wrap(~cage)))
+bxplots_valerie_2 <- des_boxplots(valerie_2, x_var = "genotype", color = "treatment")
+bxplots_valerie_3 <- des_boxplots(valerie_3, x_var = "genotype", color = "treatment")
+```
+
+```{r}
+valerie_1_grouped
+```
+
+```{r}
+# Show bxplots_valerie_1$y only
+bxplots_valerie_1$y
+
+# Show bxplots_valerie_2$y only
+bxplots_valerie_2$y
+
+# Show bxplots_valerie_3$y only
+bxplots_valerie_3$y
+```
+
+```{r, results="hide"}
+install.packages("gtsummary") # install the gtsummary package
+library(gtsummary)
+
+t1 <- valerie_1 %>%
+  tbl_summary(by = treatment) %>%
+  add_overall()
+print(t1)
+```
+
+```{r}
+library(ggplot2)
+
+# Plot for dataset valerie_1 with facet_wrap
+ggplot(valerie_1, aes(x = treatment, y = y)) +
+  geom_bar(stat = "identity", fill = "skyblue", alpha = 0.5) +
+  facet_wrap(~ genotype)
+```
+
+```{r}
+# Perform shapiro.test by groups treatment and genotype for valerie_1_grouped
+shapiro_results_valerie_1 <- valerie_1_grouped %>%
+  summarise(shapiro_test = list(shapiro.test(y)))
+
+# Perform shapiro.test by groups treatment and genotype for valerie_2_grouped
+shapiro_results_valerie_2 <- valerie_2_grouped %>%
+  summarise(shapiro_test = list(shapiro.test(y)))
+
+# Perform shapiro.test by groups treatment and genotype for valerie_3_grouped
+shapiro_results_valerie_3 <- valerie_3_grouped %>%
+  summarise(shapiro_test = list(shapiro.test(y)))
+
+# Extract p-values from shapiro.test results for valerie_1_grouped
+p_values_valerie_1 <- sapply(shapiro_results_valerie_1$shapiro_test, function(x) x$p.value)
+
+# Extract p-values from shapiro.test results for valerie_2_grouped
+p_values_valerie_2 <- sapply(shapiro_results_valerie_2$shapiro_test, function(x) x$p.value)
+
+# Extract p-values from shapiro.test results for valerie_3_grouped
+p_values_valerie_3 <- sapply(shapiro_results_valerie_3$shapiro_test, function(x) x$p.value)
+
+# Print p-values for valerie_1_grouped
+p_values_valerie_1
+
+# Print p-values for valerie_2_grouped
+p_values_valerie_2
+
+# Print p-values for valerie_3_grouped
+p_values_valerie_3
+```
+
+```{r}
+# Perform ANOVA on valerie_1_grouped
+anova_valerie_1 <- aov(y ~ genotype + treatment + cage, data = valerie_1_grouped)
+
+# Perform ANOVA on valerie_2_grouped
+anova_valerie_2 <- aov(y ~ genotype + treatment + cage, data = valerie_2_grouped)
+
+# Perform ANOVA on valerie_3_grouped
+anova_valerie_3 <- aov(y ~ genotype + treatment + cage, data = valerie_3_grouped)
+
+# Perform Tukey-HSD test on valerie_1_grouped
+tukey_valerie_1 <- TukeyHSD(anova_valerie_1)
+
+# Perform Tukey-HSD test on valerie_2_grouped
+tukey_valerie_2 <- TukeyHSD(anova_valerie_2)
+
+# Perform Tukey-HSD test on valerie_3_grouped
+tukey_valerie_3 <- TukeyHSD(anova_valerie_3)
+```
+
+## Tables for ANOVA Results
+
+### anova_valerie_1
+
+```{r}
+summary(anova_valerie_1)
+```
+
+### anova_valerie_2
+
+```{r}
+summary(anova_valerie_2)
+```
+
+### anova_valerie_3
+
+```{r}
+summary(anova_valerie_3)
+```
+
+## Tables for Tukey-HSD Results
+
+### tukey_valerie_1
+
+```{r}
+summary(tukey_valerie_1)
+```
+
+### tukey_valerie_2
+
+```{r}
+summary(tukey_valerie_2)
+```
+
+### tukey_valerie_3
+
+```{r}
+summary(tukey_valerie_3)
+```
+
+```{r}
+# Print the results by summary
+
+# Summary of anova_valerie_1
+summary(anova_valerie_1)
+
+# Summary of anova_valerie_2
+summary(anova_valerie_2)
+
+# Summary of anova_valerie_3
+summary(anova_valerie_3)
+
+# Summary of tukey_valerie_1
+tukey_valerie_1
+
+# Summary of tukey_valerie_2
+tukey_valerie_2
+
+# Summary of tukey_valerie_3
+tukey_valerie_3
+```
+
+```{r}
+ install.packages("lme4")
+```
+
+```{r}
+library(lme4)
+```
+
+```{r}
+lmer(y~ treatment + genotype + (1|cage), data = valerie_1)
+lmer(y ~ genotype + treatment + (1|cage), data = valerie_1)
+lmer(y ~ genotype + (1|cage), data = valerie_1)
+lmer(y ~ treatment + (1|cage), data = valerie_1)
+lmer(y ~ treatment + cage + (1|genotype), data = valerie_1)
+```
+
+## ANOVA Analysis
+
+To perform ANOVA analysis including cage as a fixed effect, we can follow these steps:
+
+1. Fit an ANOVA model with the outcome variable y as the response variable and genotype, treatment, and cage as the explanatory variables.
+2. Check for the presence of interaction between genotype and treatment.
+3. Interpret the results, including any significant effects or interactions.
+
+## Mixed Model Analysis
+
+To perform mixed model analysis with cage as a random effect, we can follow these steps:
+
+1. Fit a mixed model with the outcome variable y as the response variable, genotype and treatment as fixed effects, and cage as a random effect.
+2. Compare the results with the previous analysis with cage as a fixed effect.
+3. Interpret the results, including any changes in the significance of effects or interactions.
+
